@@ -1,0 +1,74 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Poppins:wght@500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    --color-background: 0 0% 98%;
+    --color-foreground: 210 15% 15%;
+    --color-primary: 40 50% 55%;
+    --color-primary-foreground: 30 20% 15%;
+    --color-secondary: 30 30% 40%;
+    --color-secondary-foreground: 40 30% 90%;
+    --color-tertiary: 210 30% 96%;
+    --color-tertiary-foreground: 210 15% 18%;
+    --color-neutral: 0 0% 98%;
+    --color-neutral-foreground: 210 15% 15%;
+    --color-success: 169 63% 41%;
+    --color-success-foreground: 0 0% 100%;
+    --color-warning: 12 80% 45%;
+    --color-warning-foreground: 0 0% 100%;
+    --color-muted: 210 15% 96%;
+    --color-muted-foreground: 210 8% 50%;
+    --color-accent: 172 37% 46%;
+    --color-accent-foreground: 0 0% 100%;
+    --color-border: 210 15% 90%;
+    --color-input: 210 15% 90%;
+    --color-ring: 172 37% 46%;
+    --color-card: 0 0% 100%;
+    --color-card-foreground: 210 15% 15%;
+    --color-popover: 0 0% 100%;
+    --color-popover-foreground: 210 15% 15%;
+    --color-available: 40 45% 75%;
+    --color-available-foreground: 30 20% 25%;
+    --color-occupied: 0 0% 20%;
+    --color-occupied-foreground: 40 30% 85%;
+    --color-navbar: 30 25% 30%;
+    --color-navbar-foreground: 40 30% 85%;
+    --color-hero-foreground: 210 15% 10%;
+    
+    --font-sans: "Inter", sans-serif;
+    --font-mono: "IBM Plex Mono", monospace;
+    --font-headline: "Poppins", sans-serif;
+    
+    --radius: 12px;
+  }
+
+  * {
+    @apply border-border;
+  }
+
+  html,
+  body {
+    @apply bg-background text-foreground;
+    font-family: var(--font-sans);
+    font-weight: 300;
+    line-height: 1.5;
+  }
+
+  h1, h2, h3, h4, h5, h6 {
+    font-family: var(--font-headline);
+    font-weight: 500;
+    line-height: 1.2;
+    letter-spacing: -0.025em;
+    @apply text-foreground;
+  }
+}
+
+@layer utilities {
+  .transition-ease-in {
+    transition-timing-function: ease-in;
+  }
+}
