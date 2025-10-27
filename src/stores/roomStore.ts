@@ -1,5 +1,7 @@
 import { create } from 'zustand';
 import { roomService } from '../services/roomService';
+import { useReservationStore } from './reservationStore';
+import { isRoomCurrentlyOccupied } from '../utils/roomAvailability';
 import type { Room } from '../types/room';
 
 interface RoomStore {
@@ -42,26 +44,55 @@ export const useRoomStore = create<RoomStore>((set, get) => ({
   initializeRooms: async () => {
     set({ loading: true, error: null });
     
-    // Primero mostrar datos locales inmediatamente
-    set({ rooms: initialRooms, loading: false });
-    
     try {
-      // Intentar cargar desde Firebase en segundo plano
-      const rooms = await roomService.getAllRooms();
+      // Cargar habitaciones desde Firebase
+      let rooms = await roomService.getAllRooms();
       
       // Si no hay habitaciones en Firebase, inicializarlas
       if (rooms.length === 0) {
         console.log('Inicializando habitaciones en Firebase...');
         await roomService.initializeRooms(initialRooms);
-        set({ rooms: initialRooms, loading: false });
-      } else {
-        console.log('Habitaciones cargadas desde Firebase:', rooms.length);
-        set({ rooms, loading: false });
+        rooms = initialRooms;
       }
+
+      console.log('Habitaciones cargadas:', rooms.length);
+      
+      // Obtener reservas activas
+      const reservations = useReservationStore.getState().reservations;
+      console.log('Total reservas:', reservations.length);
+      
+      // Sincronizar con reservas activas
+      const updatedRooms = rooms.map(room => {
+        const activeReservation = isRoomCurrentlyOccupied(room.id, reservations);
+        
+        if (activeReservation) {
+          console.log('Marcando habitación como ocupada:', room.name, 'por', activeReservation.clienteNombre);
+          return {
+            ...room,
+            status: 'occupied' as const,
+            clientName: activeReservation.clienteNombre,
+            clientId: activeReservation.clienteCedula,
+            clientPhone: activeReservation.clienteTelefono,
+            fechaSalida: activeReservation.fechaCheckOut,
+            checkInDate: activeReservation.fechaCheckIn,
+          };
+        }
+        
+        return {
+          ...room,
+          status: 'available' as const,
+          clientName: '',
+          clientId: '',
+          clientPhone: '',
+          fechaSalida: '',
+          checkInDate: '',
+        };
+      });
+      
+      set({ rooms: updatedRooms, loading: false });
     } catch (error) {
-      console.error('Error con Firebase, usando datos locales:', error);
-      // Mantener datos locales si Firebase falla
-      set({ error: 'Usando datos locales (Firebase no disponible)' });
+      console.error('Error con Firebase:', error);
+      set({ rooms: initialRooms, loading: false, error: 'Error al cargar habitaciones' });
     }
   },
   

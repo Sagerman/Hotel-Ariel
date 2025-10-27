@@ -11,7 +11,7 @@ import {
 } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { useRoomStore } from '../stores/roomStore';
-import { useHistoryStore } from '../stores/historyStore';
+import { useReservationStore } from '../stores/reservationStore';
 import type { Room } from '../types/room';
 
 interface ViewDetailsModalProps {
@@ -21,9 +21,14 @@ interface ViewDetailsModalProps {
 }
 
 export default function ViewDetailsModal({ room, open, onClose }: ViewDetailsModalProps) {
-  const { checkOut } = useRoomStore();
-  const { addRecord } = useHistoryStore();
+  const { initializeRooms } = useRoomStore();
+  const { completeCheckout, reservations } = useReservationStore();
   const [isProcessing, setIsProcessing] = useState(false);
+
+  // Encontrar la reserva activa para esta habitación
+  const activeReservation = reservations.find(
+    r => r.habitacionId === room.id && r.estadoReserva === 'activa'
+  );
 
   useEffect(() => {
     if (open) {
@@ -39,30 +44,31 @@ export default function ViewDetailsModal({ room, open, onClose }: ViewDetailsMod
   }, [open]);
 
   const handleCheckOut = async () => {
+    if (!activeReservation) {
+      alert('No se encontró una reserva activa para esta habitación');
+      return;
+    }
+
+    const confirmed = window.confirm(
+      `¿Confirmar check-out de ${room.clientName}?\n\nLa habitación quedará disponible inmediatamente.`
+    );
+
+    if (!confirmed) return;
+
     setIsProcessing(true);
     try {
-      // Calcular número de noches
-      const checkIn = new Date(room.checkInDate || '');
-      const checkOutDate = new Date();
-      const diffTime = Math.abs(checkOutDate.getTime() - checkIn.getTime());
-      const numberOfNights = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-
-      // Primero realizar check-out en la habitación
-      await checkOut(room.id);
-
-      // Luego guardar en historial
-      await addRecord({
-        roomId: room.id,
-        roomName: room.name,
-        roomType: room.type,
-        clientName: room.clientName || '',
-        clientId: room.clientId || '',
-        clientPhone: room.clientPhone || '',
-        checkInDate: room.checkInDate || '',
-        checkOutDate: new Date().toISOString().split('T')[0],
-        numberOfNights: numberOfNights || 1,
-      });
-
+      console.log('Iniciando check-out para reserva:', activeReservation.id);
+      
+      // Completar el check-out (marca la reserva como completada)
+      await completeCheckout(activeReservation.id);
+      
+      console.log('Check-out completado, recargando habitaciones...');
+      
+      // Recargar habitaciones para actualizar el estado
+      await initializeRooms();
+      
+      console.log('Habitaciones actualizadas');
+      
       // Cerrar modal
       onClose();
     } catch (error) {

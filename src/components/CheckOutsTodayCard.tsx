@@ -2,16 +2,32 @@ import { useState } from 'react';
 import { ChevronDownIcon, ChevronUpIcon, CalendarIcon } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { useRoomStore } from '../stores/roomStore';
+import { useReservationStore } from '../stores/reservationStore';
+import { ROOM_TYPES } from '../types/reservation';
 
 export default function CheckOutsTodayCard() {
   const [isExpanded, setIsExpanded] = useState(true);
-  const { rooms } = useRoomStore();
+  const { reservations } = useReservationStore();
 
-  const today = new Date().toISOString().split('T')[0];
-  const checkoutsToday = rooms.filter(
-    (room) => room.status === 'occupied' && room.fechaSalida === today
-  );
+  const today = new Date();
+  const year = today.getFullYear();
+  const month = String(today.getMonth() + 1).padStart(2, '0');
+  const day = String(today.getDate()).padStart(2, '0');
+  const todayStr = `${year}-${month}-${day}`;
+  
+  console.log('Check-outs para hoy:', todayStr);
+  
+  const checkoutsToday = reservations.filter((reservation) => {
+    // Solo mostrar reservas ACTIVAS (no completadas ni canceladas)
+    if (reservation.estadoReserva !== 'activa') return false;
+    
+    // Comparar fechas como strings
+    const isToday = reservation.fechaCheckOut === todayStr;
+    if (isToday) {
+      console.log('Check-out hoy:', reservation.clienteNombre, reservation.fechaCheckOut);
+    }
+    return isToday;
+  });
 
   return (
     <Card className="bg-gradient-1 border-none shadow-lg">
@@ -44,16 +60,18 @@ export default function CheckOutsTodayCard() {
         <CardContent>
           <div className="bg-black/20 backdrop-blur-sm rounded-lg p-4">
             <div className="space-y-3">
-              {checkoutsToday.map((room) => (
+              {checkoutsToday.map((reservation) => (
                 <div
-                  key={room.id}
+                  key={reservation.id}
                   className="flex items-center justify-between py-3 px-4 bg-black/30 rounded-lg"
                 >
                   <div>
-                    <p className="font-medium text-navbar-foreground">{room.name}</p>
-                    <p className="text-sm text-navbar-foreground/70">{room.clientName}</p>
+                    <p className="font-medium text-navbar-foreground">{reservation.clienteNombre}</p>
+                    <p className="text-sm text-navbar-foreground/70">{reservation.clienteEmail}</p>
                   </div>
-                  <span className="text-sm text-navbar-foreground/80">{room.type}</span>
+                  <span className="text-sm text-navbar-foreground/80">
+                    {ROOM_TYPES[reservation.tipoHabitacion].label}
+                  </span>
                 </div>
               ))}
             </div>

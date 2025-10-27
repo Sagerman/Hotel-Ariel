@@ -1,5 +1,5 @@
 import { Link, useLocation } from 'react-router-dom';
-import { HomeIcon, UsersIcon, SettingsIcon, HistoryIcon, ChevronLeftIcon, ChevronRightIcon } from 'lucide-react';
+import { HomeIcon, UsersIcon, SettingsIcon, HistoryIcon, ChevronLeftIcon, ChevronRightIcon, BedIcon } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import {
   Tooltip,
@@ -18,6 +18,7 @@ export default function Sidebar({ collapsed, onToggle }: SidebarProps) {
 
   const navItems = [
     { path: '/dashboard', icon: HomeIcon, label: 'Dashboard' },
+    { path: '/habitaciones', icon: BedIcon, label: 'Habitaciones' },
     { path: '/clientes', icon: UsersIcon, label: 'Clientes' },
     { path: '/configuracion', icon: SettingsIcon, label: 'Configuración' },
     { path: '/historial', icon: HistoryIcon, label: 'Historial' },
